@@ -1,10 +1,16 @@
 const express = require("express");
 const cors = require("cors");
+const pino = require("pino");
+const pinoHttp = require("pino-http");
 
 
 require("dotenv").config();
 
 const app = express();
+
+// Logger: logs on response end for every HTTP request
+const logger = pino({ level: process.env.LOG_LEVEL || "info" });
+app.use(pinoHttp({ logger }));
 
 const corsOptions = {
     origin: "*"
