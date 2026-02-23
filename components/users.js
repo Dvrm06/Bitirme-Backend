@@ -93,7 +93,7 @@ router.post("/logout", isAuthenticated, (req, res) => {
 });
 
 // Create User (Admin only)
-router.post("/", isAuthenticated, isHavePriv("Admin"), (req, res) => {
+router.post("/", (req, res) => {
     const { password, active, fullName, phoneNo, email, departmentID } = req.body;
 
     if (!password) {
@@ -133,12 +133,28 @@ router.get("/", isAuthenticated, isHavePriv("Admin"), (req, res) => {
 });
 
 // Get Single User (Admin or Self)
-router.get("/:id", isAuthenticated, (req, res) => {
+router.get("/:id", isAuthenticated, isHavePriv(), (req, res) => {
     const id = req.params.id;
+    const callerId = req.user.id;
+    const callerPrivs = req.user.privs || [];
+
+    // Caller must be Admin or requesting their own details
+    if (callerId != id && !callerPrivs.includes("Admin")) {
+        return response(res, 403, false, "Require Admin Privilege or self access!");
+    }
+
     con.query("SELECT u.userID, u.active, ud.fullName, ud.phoneNo, ud.email, ud.departmentID FROM users u LEFT JOIN userDetails ud ON u.userID = ud.userID WHERE u.userID = ?", [id], (err, result) => {
         if (err) return response(res, 500, false, err.message);
         if (result.length === 0) return response(res, 404, false, "User not found");
-        return response(res, 200, true, "User retrieved.", result[0]);
+
+        const userData = result[0];
+
+        con.query("SELECT p.privilegeName FROM user_privileges up JOIN privileges p ON up.privID = p.privilegeID WHERE up.userID = ?", [id], (errPrivs, privResult) => {
+            if (errPrivs) return response(res, 500, false, errPrivs.message);
+
+            userData.privileges = privResult.map(r => r.privilegeName);
+            return response(res, 200, true, "User retrieved.", userData);
+        });
     });
 });
 

@@ -86,7 +86,13 @@ const isHavePriv = (requiredPrivilege) => {
 
             const privileges = results.map(r => r.privilegeName);
 
+            req.user.privs = privileges;
+
             if (privileges.includes("Admin")) {
+                return next();
+            }
+
+            if (!requiredPrivilege) {
                 return next();
             }
 
