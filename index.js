@@ -14,7 +14,12 @@ const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 app.use(pinoHttp({ logger }));
 
 const corsOptions = {
-    origin: "*"
+    origin: "*",
+    //Local'de çalıştırırken sorun çıktığı için alttaki kodu kullanıyorum
+    /*
+    origin: "http://localhost:5173",
+    credentials: true
+    */
 };
 
 app.use(cors(corsOptions));
@@ -32,11 +37,13 @@ const users = require("./components/users");
 const departments = require("./components/departments");
 const lessons = require("./components/lessons");
 const lessonGroups = require("./components/lessonGroups");
+const ai = require("./components/ai");
 
 app.use(`${BASE_URL}/users`, users);
 app.use(`${BASE_URL}/departments`, departments);
 app.use(`${BASE_URL}/lessons`, lessons);
 app.use(`${BASE_URL}/lessonGroups`, lessonGroups);
+app.use(`${BASE_URL}/ai`, ai);
 
 // Simple route
 app.get("/", (req, res) => {
