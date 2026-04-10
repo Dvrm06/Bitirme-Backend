@@ -7,7 +7,7 @@ var con = mysql.createPool({
     password: DB_PASSWORD,
     database: dbName,
     port: 3306,
-    multipleStatements: true,
+    // multipleStatements removed for security (SQL injection prevention)
     waitForConnections: true,
     connectionLimit: 50,
     queueLimit: 0,

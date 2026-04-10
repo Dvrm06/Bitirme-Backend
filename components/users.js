@@ -62,15 +62,18 @@ router.post("/login", (req, res) => {
             con.query(insertTokenQuery, [refreshToken, user.userID, expiresAt], (errToken) => {
                 if (errToken) return response(res, 500, false, "Session creation failed: " + errToken.message);
 
-                res.cookie("accessToken", accessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 });
-                res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+                const cookieOptions = {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'Lax'
+                };
+                res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 });
+                res.cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
 
                 return response(res, 200, true, "Login successful.", {
                     id: user.userID,
                     email: user.email,
-                    fullName: user.fullName,
-                    accessToken,
-                    refreshToken
+                    fullName: user.fullName
                 });
             });
         }); // end bcrypt.compare
